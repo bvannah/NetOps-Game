@@ -1,0 +1,128 @@
+#Welcome to the unofficial NetOps game!
+#Please only open in a large Powershell ISE window.
+#The game is played with the mouse pointer in the console window below.
+
+function newblock(){ #first move all previous up 10(?), then add a new one
+
+    $side = Get-Random -Minimum 0 -Maximum 2
+    $len = Get-Random -Minimum 2 -Maximum 9
+    $problems="UDriveFail","ODRIVEHELP","siprVIhigh","RogueComps", "OPORDdone?", "GDrivePath", "Permission", "SharePoint", "SystemSlow", "AcessBlock", "TicketWork", "ServiceAct", "McAfeeSlow", "PushUpdate", "ManyEmails", "PingFailed", "Complaints", "ServerDown", "HardDrives", "FolderGone"
+    $blockstr=""
+    if($side -eq 0){ #left side
+        for($i=0; $i -lt $len; $i++){
+            for($j=0; $j -lt 10; $j++){ $blocklist.add((0, ($i*10+$j))) > $null}
+            $prob=Get-Random -Minimum 0 -Maximum 20
+            $blockstr += $problems[$prob]
+        }
+        for($i=$len*10; $i -lt 100; $i++){
+            $blockstr += " "
+        }
+    }
+
+    if($side -eq 1){ #right side
+        for($i=0; $i -lt 100-$len*10; $i++){
+            $blockstr += " "
+        }
+        for($i=0; $i -lt $len; $i++){
+            for($j=0; $j -lt 10; $j++){ $blocklist.add((0, (100-$len*10+$i*10+$j))) > $null}
+            $prob=Get-Random -Minimum 0 -Maximum 20
+            $blockstr += $problems[$prob]
+        }
+    }
+    $blockstr
+    #$blocklist
+}
+
+function colcheck(){
+    foreach($i in $blocklist){
+        if(($xpos -eq $i[1]) -and ($ypos -eq $i[0])){
+            return 1
+        }
+
+    }
+    return 0
+}
+
+function setup(){
+    "Welcome to NetOps. Get to the bottom of the problems without crashing into any of them!"
+    "Wiggle mouse here to begin --->          Also, don't stray too far away from the center"
+    for($i=0; $i-lt 40; $i++){""}
+
+while(0 -eq 0){
+    $posout=[System.Windows.Forms.Cursor]::Position
+    $xpos=[Math]::floor(($posout.x - 20)*.09)
+    $ypos=[Math]::floor((1998-$posout.y) * .05+.75)
+    if(($xpos -eq 32) -and ($ypos -eq 40)){
+        return
+    }
+}
+}
+
+while(0 -eq 0){ #run the game until you win or say no
+$blocklist = New-Object System.Collections.ArrayList
+$cycles=3
+$blockcycles=0
+setup
+$speedincreaser=0
+$blockspeed = 20
+$cyclespeed = 2
+
+while(0 -eq 0){#tick in-game
+$posout=[System.Windows.Forms.Cursor]::Position
+$xpos=[Math]::floor(($posout.x - 20)*.092)
+$ypos=[Math]::floor((1998-$posout.y) * .05+.75)
+
+if(($xpos -gt 100) -or ($xpos -lt 0) -or ($ypos -lt 0)){
+   $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+   $val= $wshell.Popup("You ran away from the problem... Try again?", 0,"Back to the foundry..." , 4+48)
+   break
+
+
+}#out-of-bounds check
+
+if($cycles  -gt 1000){#victory check
+       cls
+       $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+       $val=$wshell.Popup("Congratulations, you're ready to be a NetOps professional!", 0, "The client just restarted their computer and now it works.", 0)
+
+       break
+} #victory check
+
+if(colcheck -eq 1){ #collision check, game over
+   $wshell = New-Object -ComObject Wscript.Shell -ErrorAction Stop
+   $val= $wshell.Popup("You ran into a problem! Try again?", 0,"Back to the foundry..." , 4+48)
+   break
+}#collision check
+
+
+if($blockcycles % $blockspeed -eq 0){
+    newblock
+    foreach($i in $blocklist){
+        $i[0] += 1
+    }
+    $speedincreaser++
+}#time for new block
+
+
+if($cycles % $cyclespeed -eq 0){
+    ""
+    foreach($i in $blocklist){
+       $i[0] += 1
+    }
+}#time to move up 1
+
+if($cycles % 100 -eq 0){
+    $blockspeed--
+}#time to speed up blocks
+
+
+$blockcycles++
+$cycles ++
+Start-Sleep -m 32
+}
+
+
+if(($val -eq 7) -or ($val -eq 1)){break} #means they clicked "NO" to retry
+
+}
+
